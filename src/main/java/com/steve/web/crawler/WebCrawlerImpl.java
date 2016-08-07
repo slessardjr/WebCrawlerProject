@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 class WebCrawlerImpl implements WebCrawler {
     private final static Logger logger = LogManager.getLogger(WebCrawlerImpl.class);
@@ -40,10 +39,6 @@ class WebCrawlerImpl implements WebCrawler {
     public void start() throws InterruptedException {
         logger.trace("Start method call started.");
         threadPool.invoke(new WebCrawlerAction(this, this.startURL));
-
-        threadPool.shutdown();
-        threadPool.awaitTermination(1, TimeUnit.MINUTES);
-
         logger.trace("Start method call complete.");
     }
 
