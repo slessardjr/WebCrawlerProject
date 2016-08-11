@@ -110,6 +110,13 @@
                     </programs>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.11</version>
+                <configuration>
+                    <groups>com.steve.web.crawler.tests.*</groups>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

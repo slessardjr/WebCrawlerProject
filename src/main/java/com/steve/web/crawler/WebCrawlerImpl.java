@@ -3,33 +3,22 @@ package com.steve.web.crawler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
-class WebCrawlerImpl implements WebCrawler {
+public class WebCrawlerImpl implements WebCrawler {
     private final static Logger logger = LogManager.getLogger(WebCrawlerImpl.class);
-    private final Object threadLock = new Object();
 
     private SiteBrowser siteBrowser;
     private ForkJoinPool threadPool;
+    private WebCrawlerData webCrawlerData;
 
-    private List<String> visitedSites;
-    private List<String> skippedSites;
-    private List<String> errorSites;
-
-    WebCrawlerImpl(Integer maxNumberOfThreads, SiteBrowser siteBrowser) {
+    public WebCrawlerImpl(Integer maxNumberOfThreads, SiteBrowser siteBrowser, WebCrawlerData webCrawlerData) {
         logger.trace("Creating SiteBrowserJsonFileImpl Crawler Object");
-
         threadPool = new ForkJoinPool(maxNumberOfThreads);
 
-        visitedSites = Collections.synchronizedList(new ArrayList<String>());
-        skippedSites = Collections.synchronizedList(new ArrayList<String>());
-        errorSites = Collections.synchronizedList(new ArrayList<String>());
-
         this.siteBrowser = siteBrowser;
+        this.webCrawlerData = webCrawlerData;
 
         logger.trace("Created the SiteBrowserJsonFileImpl Crawler Object");
     }
@@ -38,8 +27,7 @@ class WebCrawlerImpl implements WebCrawler {
     public void start(String startURL) throws InterruptedException {
         logger.trace("Start method call started.");
         threadPool.invoke(new CrawlerAction(startURL, this, siteBrowser));
-        threadPool.shutdown();
-        threadPool.awaitTermination(5, TimeUnit.MINUTES);
+        stopThreads();
         logger.trace("Start method call complete.");
     }
 
@@ -47,84 +35,41 @@ class WebCrawlerImpl implements WebCrawler {
     public void start(String startURL, int maxDepth) throws InterruptedException {
         logger.trace("Start method call started.");
         threadPool.invoke(new CrawlerAction(startURL, this, siteBrowser, maxDepth));
+        stopThreads();
+        logger.trace("Start method call complete.");
+    }
+
+    private void stopThreads() throws InterruptedException {
         threadPool.shutdown();
         threadPool.awaitTermination(5, TimeUnit.MINUTES);
-        logger.trace("Start method call complete.");
     }
 
     @Override
     public boolean hasVisitedSite(String siteAddress) {
-        synchronized (threadLock) {
-            return visitedSites.contains(siteAddress);
-        }
+        return webCrawlerData.hasVisitedSite(siteAddress);
     }
 
     @Override
     public void addVisitedSite(String siteAddress) {
-        synchronized (threadLock) {
-            logger.trace("Adding page to visited list: " + siteAddress);
-            visitedSites.add(siteAddress);
-        }
-    }
-
-    @Override
-    public void addSkippedSite(String siteAddress) {
-        synchronized (threadLock) {
-            if (!skippedSites.contains(siteAddress)) {
-                logger.trace("Adding page to skipped list: " + siteAddress);
-                skippedSites.add(siteAddress);
-            }
-        }
-    }
-
-    @Override
-    public void addErrorSite(String siteAddress) {
-        synchronized (threadLock) {
-            if (!errorSites.contains(siteAddress)) {
-                logger.trace("Adding page to error list: " + siteAddress);
-                errorSites.add(siteAddress);
-            }
-        }
+        webCrawlerData.addVisitedSite(siteAddress);
     }
 
     @Override
     public String getReport() {
-        return getReportSection("Success", visitedSites) +
-                getReportSection("Skipped", skippedSites) +
-                getReportSection("Error", errorSites);
+        return webCrawlerData.getReport();
     }
 
-    private String getReportSection(String sectionName, List<String> results) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(sectionName);
-        sb.append(System.getProperty("line.separator"));
-        sb.append("[");
-
-        for (String link : results) {
-            sb.append("\"").append(link).append("\",");
-        }
-
-        if (!results.isEmpty()) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-
-        sb.append("]");
-        sb.append(System.getProperty("line.separator"));
-
-        return sb.toString();
+    @Override
+    public void addSkippedSite(String siteAddress) {
+        webCrawlerData.addSkippedSite(siteAddress);
     }
 
-    public List<String> getVisitedSites() {
-        return visitedSites;
+    @Override
+    public void addErrorSite(String siteAddress) {
+        webCrawlerData.addErrorSite(siteAddress);
     }
 
-    public List<String> getSkippedSites() {
-        return skippedSites;
+    public WebCrawlerData getWebCrawlerData() {
+        return webCrawlerData;
     }
-
-    public List<String> getErrorSites() {
-        return errorSites;
-    }
-
 }

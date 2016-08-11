@@ -24,7 +24,7 @@ public class SiteBrowserJsonFileImpl implements SiteBrowser {
         }
     }
 
-    SiteBrowserJsonFileImpl(InputStream jsonFile) throws Exception {
+    public SiteBrowserJsonFileImpl(InputStream jsonFile) throws Exception {
         jsonDocument = JsonPath.parse(jsonFile);
     }
 
@@ -39,7 +39,7 @@ public class SiteBrowserJsonFileImpl implements SiteBrowser {
             List<String> links = (List<String>) pageMap.get("links");
             pageLinks.addAll(links);
         } else {
-            throw new Exception("JSON Page not found.");
+            throw new JsonPageNotFoundException("Cannot Find JSON Page: " + siteAddress);
         }
 
         return pageLinks;
@@ -61,6 +61,5 @@ public class SiteBrowserJsonFileImpl implements SiteBrowser {
     public Set<String> getAllSiteLinks(String siteAddress) throws Exception {
         return getAllSiteLinks(siteAddress, this.jsonDocument);
     }
-
-
 }
+

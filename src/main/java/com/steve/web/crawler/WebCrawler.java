@@ -1,6 +1,6 @@
 package com.steve.web.crawler;
 
-interface WebCrawler {
+public interface WebCrawler {
     void addErrorSite(String siteAddress);
 
     void addSkippedSite(String siteAddress);

@@ -17,7 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
         Options programOptions = ProgramOptions.getProgramOptions();
-        if (args == null || args.length == 0) {
+        if (args == null) {
             ProgramOptions.help(programOptions);
         }
 
@@ -55,12 +55,23 @@ public class Main {
             }
 
             if (commandLine.hasOption(ProgramOptions.WEB_MODE_ARG_NAME)) {
-                String startingUrl = commandLine.getOptionValue(ProgramOptions.WEB_MODE_ARG_NAME);
-                if (startingUrl != null && !startingUrl.isEmpty()) {
-                    String result = runCrawl(maxDepth, startingUrl);
-                    logger.info(result);
+                System.out.println("Are you sure you want to query the ACTUAL web? Type Y or y to Continue: ");
+                System.console().flush();
+                String consoleInput = System.console().readLine().trim();
+                System.console().flush();
+
+                if (consoleInput != null && consoleInput.equalsIgnoreCase("y")) {
+
+                    String startingUrl = commandLine.getOptionValue(ProgramOptions.WEB_MODE_ARG_NAME);
+                    if (startingUrl != null && !startingUrl.isEmpty()) {
+                        String result = runCrawl(maxDepth, startingUrl);
+                        logger.info(result);
+                    } else {
+                        logger.error("Starting URL is empty or missing");
+                        ProgramOptions.help(programOptions);
+                    }
                 } else {
-                    logger.error("Starting URL is empty or missing");
+                    logger.error("Unexpected response: \"" + consoleInput + "\".  Please Try Again.");
                     ProgramOptions.help(programOptions);
                 }
             }
@@ -77,37 +88,39 @@ public class Main {
     }
 
     private static String runCrawl(Integer maxDepth, String startingUrl) throws Exception {
-        return runCrawl(maxDepth, startingUrl, new WebCrawlerImpl(5, new SiteBrowserImpl()));
+        WebCrawlerData webCrawlerData = new WebCrawlerDataImpl();
+        SiteBrowser siteBrowser = new SiteBrowserImpl();
+
+        WebCrawler webCrawler = new WebCrawlerImpl(5, siteBrowser, webCrawlerData);
+
+        return runCrawl(maxDepth, startingUrl, webCrawler);
     }
 
     private static String runCrawl(Integer maxDepth, String startingUrl, WebCrawler webCrawler) throws Exception {
-        if (startingUrl != null && !startingUrl.isEmpty()) {
-            if (maxDepth != null) {
-                webCrawler.start(startingUrl, maxDepth);
-            } else {
-                webCrawler.start(startingUrl);
-            }
-        }
+        startWebCrawler(startingUrl, maxDepth, webCrawler);
         return webCrawler.getReport();
     }
 
     private static String runTest(String jsonFilePath, Integer maxDepth) throws Exception {
         SiteBrowserJsonFileImpl jsonSiteBrowser = new SiteBrowserJsonFileImpl(jsonFilePath);
-        WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser);
+        WebCrawlerData webCrawlerData = new WebCrawlerDataImpl();
+        WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser, webCrawlerData);
 
         return runTest(jsonFilePath, maxDepth, webCrawler, jsonSiteBrowser);
     }
 
     private static String runTest(String jsonFilePath, Integer maxDepth, WebCrawler webCrawler, SiteBrowser siteBrowser) throws Exception {
         String startingUrl = siteBrowser.getFirstPageAddress();
+        startWebCrawler(startingUrl, maxDepth, webCrawler);
+        return jsonFilePath + System.getProperty("line.separator") + webCrawler.getReport();
+    }
 
-        if (maxDepth != null) {
+    private static void startWebCrawler(String startingUrl, Integer maxDepth, WebCrawler webCrawler) throws InterruptedException {
+        if (maxDepth != null && startingUrl != null && !startingUrl.isEmpty()) {
             webCrawler.start(startingUrl, maxDepth);
         } else {
             webCrawler.start(startingUrl);
         }
-
-        return jsonFilePath + System.getProperty("line.separator") + webCrawler.getReport();
     }
 
     private static void runDemo() {
@@ -119,13 +132,14 @@ public class Main {
             Runnable internetRunnable = () -> {
                 try {
                     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
                     InputStream internetJsonFileStream = classLoader.getResourceAsStream(file);
-
                     SiteBrowserJsonFileImpl jsonSiteBrowser = new SiteBrowserJsonFileImpl(internetJsonFileStream);
-                    WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser);
 
+                    WebCrawlerData webCrawlerData = new WebCrawlerDataImpl();
+
+                    WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser, webCrawlerData);
                     webCrawler.start(jsonSiteBrowser.getFirstPageAddress());
+
                     String internetResult = file + System.getProperty("line.separator") +
                             webCrawler.getReport();
 
