@@ -9,15 +9,19 @@ import org.jsoup.select.Elements;
 import java.util.HashSet;
 import java.util.Set;
 
-public class WebCrawlerSiteBrowserImpl implements WebCrawlerSiteBrowser {
+public class SiteBrowserImpl implements SiteBrowser {
     @Override
     public Set<String> getAllSiteLinks(String siteAddress) throws Exception {
-        Set<String> siteLinks = new HashSet<>();
-
         Document siteDocument = Jsoup.connect(siteAddress).get();
         Elements siteDocumentLinks = siteDocument.select("a[href]");
 
-        for (Element link : siteDocumentLinks) {
+        return getLinks(siteDocumentLinks);
+    }
+
+    private Set<String> getLinks(Elements elements) {
+        Set<String> siteLinks = new HashSet<>();
+
+        for (Element link : elements) {
             String linkText = link.attr("href");
             if (linkText != null && !linkText.isEmpty()) {
                 siteLinks.add(linkText);

@@ -65,7 +65,7 @@ public class Main {
     private static void runCrawl(Integer maxDepth, CommandLine commandLine, Options programOptions) throws Exception {
         String startingUrl = commandLine.getOptionValue(ProgramOptions.WEB_MODE_ARG_NAME);
         if (startingUrl != null && !startingUrl.isEmpty()) {
-            WebCrawler webCrawler = new WebCrawlerImpl(5, new WebCrawlerSiteBrowserImpl());
+            WebCrawler webCrawler = new WebCrawlerImpl(5, new SiteBrowserImpl());
 
             if (maxDepth != null) {
                 webCrawler.start(startingUrl, maxDepth);
@@ -83,7 +83,7 @@ public class Main {
     private static void runTest(Integer maxDepth, CommandLine commandLine, Options programOptions) throws Exception {
         String jsonFilePath = commandLine.getOptionValue(ProgramOptions.TEST_MODE_ARG_NAME);
         if (jsonFilePath != null && !jsonFilePath.isEmpty()) {
-            WebCrawlerSiteBrowserJsonFileImpl jsonSiteBrowser = new WebCrawlerSiteBrowserJsonFileImpl(jsonFilePath);
+            SiteBrowserJsonFileImpl jsonSiteBrowser = new SiteBrowserJsonFileImpl(jsonFilePath);
             WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser);
 
             String startingUrl = jsonSiteBrowser.getFirstPageAddress();
@@ -115,7 +115,7 @@ public class Main {
                     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
                     File internetJsonFile = new File(classLoader.getResource(file).getFile());
 
-                    WebCrawlerSiteBrowserJsonFileImpl jsonSiteBrowser = new WebCrawlerSiteBrowserJsonFileImpl(internetJsonFile);
+                    SiteBrowserJsonFileImpl jsonSiteBrowser = new SiteBrowserJsonFileImpl(internetJsonFile);
                     WebCrawler webCrawler = new WebCrawlerImpl(5, jsonSiteBrowser);
 
                     webCrawler.start(jsonSiteBrowser.getFirstPageAddress());

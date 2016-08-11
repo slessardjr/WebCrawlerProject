@@ -21,7 +21,7 @@ class ProgramOptions {
                         .argName("d")
                         .longOpt(DEMO_MODE_ARG_NAME)
                         .hasArg(false)
-                        .desc("Runs the WebCrawlerSiteBrowserJsonFileImpl Crawler in Demo mode. Processes Two internal files, internet1.json and internet2.json")
+                        .desc("Runs the SiteBrowserJsonFileImpl Crawler in Demo mode. Processes Two internal files, internet1.json and internet2.json")
                         .build()
         );
 
@@ -31,7 +31,7 @@ class ProgramOptions {
                         .longOpt(TEST_MODE_ARG_NAME)
                         .hasArg()
                         .type(String.class)
-                        .desc("Runs the WebCrawlerSiteBrowserJsonFileImpl Crawler in Test mode. Provide Path to JSON Internet File")
+                        .desc("Runs the SiteBrowserJsonFileImpl Crawler in Test mode. Provide Path to JSON Internet File")
                         .build()
         );
 
@@ -41,7 +41,7 @@ class ProgramOptions {
                         .longOpt(WEB_MODE_ARG_NAME)
                         .hasArg()
                         .type(String.class)
-                        .desc("Runs the WebCrawlerSiteBrowserJsonFileImpl Crawler on a Website. Provide starting website URL")
+                        .desc("Runs the SiteBrowserJsonFileImpl Crawler on a Website. Provide starting website URL")
                         .build()
         );
 

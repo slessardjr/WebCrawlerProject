@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.concurrent.RecursiveAction;
 
 
-class WebCrawlerAction extends RecursiveAction {
+class CrawlerAction extends RecursiveAction {
     private String url;
     private WebCrawler webCrawler;
-    private WebCrawlerSiteBrowser siteBrowser;
+    private SiteBrowser siteBrowser;
     private boolean limitedSearch;
     private Integer maxDepth;
     private Integer currentDepth;
 
-    WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser) {
+    CrawlerAction(String urlToCrawl, WebCrawler webCrawler, SiteBrowser siteBrowser) {
         this.webCrawler = webCrawler;
         this.url = urlToCrawl;
         this.siteBrowser = siteBrowser;
@@ -23,7 +23,7 @@ class WebCrawlerAction extends RecursiveAction {
         currentDepth = 0;
     }
 
-    WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser, int maxDepth) {
+    CrawlerAction(String urlToCrawl, WebCrawler webCrawler, SiteBrowser siteBrowser, int maxDepth) {
         this.webCrawler = webCrawler;
         this.url = urlToCrawl;
         this.siteBrowser = siteBrowser;
@@ -32,7 +32,7 @@ class WebCrawlerAction extends RecursiveAction {
         currentDepth = 0;
     }
 
-    private WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser, boolean limitedSearch, int maxDepth, int currentDepth) {
+    private CrawlerAction(String urlToCrawl, WebCrawler webCrawler, SiteBrowser siteBrowser, boolean limitedSearch, int maxDepth, int currentDepth) {
         this.webCrawler = webCrawler;
         this.url = urlToCrawl;
         this.siteBrowser = siteBrowser;
@@ -60,7 +60,7 @@ class WebCrawlerAction extends RecursiveAction {
                         if (link.startsWith("/")) {
                             link = url.concat(link);
                         }
-                        linkActions.add(new WebCrawlerAction(link, webCrawler, siteBrowser, limitedSearch, maxDepth, currentDepth));
+                        linkActions.add(new CrawlerAction(link, webCrawler, siteBrowser, limitedSearch, maxDepth, currentDepth));
                     }
 
                     invokeAll(linkActions);

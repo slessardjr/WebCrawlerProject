@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class WebCrawlerSiteBrowserJsonFileImpl implements WebCrawlerSiteBrowser {
+public class SiteBrowserJsonFileImpl implements SiteBrowser {
     private DocumentContext jsonDocument;
 
-    WebCrawlerSiteBrowserJsonFileImpl(String filePath) throws FileNotFoundException {
+    SiteBrowserJsonFileImpl(String filePath) throws FileNotFoundException {
         try {
             File jsonFile = new File(filePath);
             jsonDocument = JsonPath.parse(jsonFile);
@@ -23,7 +23,7 @@ public class WebCrawlerSiteBrowserJsonFileImpl implements WebCrawlerSiteBrowser 
         }
     }
 
-    WebCrawlerSiteBrowserJsonFileImpl(File jsonFile) throws FileNotFoundException {
+    SiteBrowserJsonFileImpl(File jsonFile) throws FileNotFoundException {
         try {
             jsonDocument = JsonPath.parse(jsonFile);
         } catch (Exception e) {
@@ -31,12 +31,11 @@ public class WebCrawlerSiteBrowserJsonFileImpl implements WebCrawlerSiteBrowser 
         }
     }
 
-    @Override
-    public Set<String> getAllSiteLinks(String siteAddress) throws Exception {
+    private static Set<String> getAllSiteLinks(String siteAddress, DocumentContext documentContext) throws Exception {
         Set<String> pageLinks = new HashSet<>();
 
         String xPathQuery = "$.pages[?(@.address == '" + siteAddress + "')]";
-        List<Map<String, Object>> pages = jsonDocument.read(xPathQuery, List.class);
+        List<Map<String, Object>> pages = documentContext.read(xPathQuery, List.class);
 
         if (pages != null && !pages.isEmpty()) {
             Map<String, Object> pageMap = pages.get(0);
@@ -49,10 +48,19 @@ public class WebCrawlerSiteBrowserJsonFileImpl implements WebCrawlerSiteBrowser 
         return pageLinks;
     }
 
-    public String getFirstPageAddress() {
+    private static String getFirstPageAddress(DocumentContext documentContext) {
         String xPathQuery = "$.pages[0]";
-        Page page = jsonDocument.read(xPathQuery, Page.class);
+        Page page = documentContext.read(xPathQuery, Page.class);
 
         return (page != null) ? page.getAddress() : null;
+    }
+
+    @Override
+    public Set<String> getAllSiteLinks(String siteAddress) throws Exception {
+        return getAllSiteLinks(siteAddress, this.jsonDocument);
+    }
+
+    public String getFirstPageAddress() {
+        return getFirstPageAddress(this.jsonDocument);
     }
 }

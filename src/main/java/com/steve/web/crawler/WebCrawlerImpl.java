@@ -13,15 +13,15 @@ class WebCrawlerImpl implements WebCrawler {
     private final static Logger logger = LogManager.getLogger(WebCrawlerImpl.class);
     private final Object threadLock = new Object();
 
-    private WebCrawlerSiteBrowser siteBrowser;
+    private SiteBrowser siteBrowser;
     private ForkJoinPool threadPool;
 
     private List<String> visitedSites;
     private List<String> skippedSites;
     private List<String> errorSites;
 
-    WebCrawlerImpl(Integer maxNumberOfThreads, WebCrawlerSiteBrowser siteBrowser) {
-        logger.trace("Creating WebCrawlerSiteBrowserJsonFileImpl Crawler Object");
+    WebCrawlerImpl(Integer maxNumberOfThreads, SiteBrowser siteBrowser) {
+        logger.trace("Creating SiteBrowserJsonFileImpl Crawler Object");
 
         threadPool = new ForkJoinPool(maxNumberOfThreads);
 
@@ -31,13 +31,13 @@ class WebCrawlerImpl implements WebCrawler {
 
         this.siteBrowser = siteBrowser;
 
-        logger.trace("Created the WebCrawlerSiteBrowserJsonFileImpl Crawler Object");
+        logger.trace("Created the SiteBrowserJsonFileImpl Crawler Object");
     }
 
     @Override
     public void start(String startURL) throws InterruptedException {
         logger.trace("Start method call started.");
-        threadPool.invoke(new WebCrawlerAction(startURL, this, siteBrowser));
+        threadPool.invoke(new CrawlerAction(startURL, this, siteBrowser));
         threadPool.shutdown();
         threadPool.awaitTermination(5, TimeUnit.MINUTES);
         logger.trace("Start method call complete.");
@@ -46,7 +46,7 @@ class WebCrawlerImpl implements WebCrawler {
     @Override
     public void start(String startURL, int maxDepth) throws InterruptedException {
         logger.trace("Start method call started.");
-        threadPool.invoke(new WebCrawlerAction(startURL, this, siteBrowser, maxDepth));
+        threadPool.invoke(new CrawlerAction(startURL, this, siteBrowser, maxDepth));
         threadPool.shutdown();
         threadPool.awaitTermination(5, TimeUnit.MINUTES);
         logger.trace("Start method call complete.");
