@@ -1,39 +1,75 @@
 package com.steve.web.crawler;
 
-import com.steve.web.crawler.model.Page;
-
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.RecursiveAction;
-import java.util.stream.Collectors;
 
 
 class WebCrawlerAction extends RecursiveAction {
-
     private String url;
     private WebCrawler webCrawler;
+    private WebCrawlerSiteBrowser siteBrowser;
+    private boolean limitedSearch;
+    private Integer maxDepth;
+    private Integer currentDepth;
 
-    WebCrawlerAction(WebCrawler webCrawler, String url) {
+    WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser) {
         this.webCrawler = webCrawler;
-        this.url = url;
+        this.url = urlToCrawl;
+        this.siteBrowser = siteBrowser;
+        limitedSearch = false;
+        maxDepth = 0;
+        currentDepth = 0;
+    }
+
+    WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser, int maxDepth) {
+        this.webCrawler = webCrawler;
+        this.url = urlToCrawl;
+        this.siteBrowser = siteBrowser;
+        limitedSearch = true;
+        this.maxDepth = maxDepth;
+        currentDepth = 0;
+    }
+
+    private WebCrawlerAction(String urlToCrawl, WebCrawler webCrawler, WebCrawlerSiteBrowser siteBrowser, boolean limitedSearch, int maxDepth, int currentDepth) {
+        this.webCrawler = webCrawler;
+        this.url = urlToCrawl;
+        this.siteBrowser = siteBrowser;
+        this.limitedSearch = limitedSearch;
+        this.maxDepth = maxDepth;
+        this.currentDepth = currentDepth;
     }
 
     @Override
     protected void compute() {
-        Page page = webCrawler.visitPage(url);
+        if (limitedSearch && currentDepth > maxDepth) {
+            return;
+        }
 
-        if (page != null) {
-            if (!webCrawler.hasVisitedSite(page.getAddress())) {
-                webCrawler.addVisitedSite(page.getAddress());
+        if (!webCrawler.hasVisitedSite(url)) {
+            try {
+                Collection<String> siteLinks = siteBrowser.getAllSiteLinks(url);
+                webCrawler.addVisitedSite(url);
 
-                List<RecursiveAction> linkActions = page.getLinks().stream().map(link ->
-                        new WebCrawlerAction(webCrawler, link)).collect(Collectors.toList());
+                if (siteLinks != null && !siteLinks.isEmpty()) {
+                    currentDepth++;
 
-                invokeAll(linkActions);
-            } else {
-                webCrawler.addSkippedSite(page.getAddress());
+                    List<RecursiveAction> linkActions = new ArrayList<>();
+                    for (String link : siteLinks) {
+                        if (link.startsWith("/")) {
+                            link = url.concat(link);
+                        }
+                        linkActions.add(new WebCrawlerAction(link, webCrawler, siteBrowser, limitedSearch, maxDepth, currentDepth));
+                    }
+
+                    invokeAll(linkActions);
+                }
+            } catch (Throwable t) {
+                webCrawler.addErrorSite(url);
             }
         } else {
-            webCrawler.addErrorSite(url);
+            webCrawler.addSkippedSite(url);
         }
     }
 }

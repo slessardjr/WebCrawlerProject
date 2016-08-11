@@ -1,7 +1,5 @@
 package com.steve.web.crawler;
 
-import com.steve.web.crawler.model.Page;
-
 interface WebCrawler {
     void addErrorSite(String siteAddress);
 
@@ -9,11 +7,11 @@ interface WebCrawler {
 
     void addVisitedSite(String siteAddress);
 
-    Page visitPage(String siteAddress);
-
     String getReport();
 
     boolean hasVisitedSite(String siteAddress);
 
-    void start() throws InterruptedException;
+    void start(String startUrl) throws InterruptedException;
+
+    void start(String startURL, int maxDepth) throws InterruptedException;
 }

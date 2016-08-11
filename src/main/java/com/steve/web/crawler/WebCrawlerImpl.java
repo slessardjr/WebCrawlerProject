@@ -1,7 +1,5 @@
 package com.steve.web.crawler;
 
-import com.steve.web.crawler.model.Internet;
-import com.steve.web.crawler.model.Page;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -9,36 +7,48 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 class WebCrawlerImpl implements WebCrawler {
     private final static Logger logger = LogManager.getLogger(WebCrawlerImpl.class);
     private final Object threadLock = new Object();
-    private String startURL;
-    private Internet internet;
+
+    private WebCrawlerSiteBrowser siteBrowser;
     private ForkJoinPool threadPool;
 
     private List<String> visitedSites;
     private List<String> skippedSites;
     private List<String> errorSites;
 
-    WebCrawlerImpl(Internet internet, String startURL) {
-        logger.trace("Creating Web Crawler Object");
-        this.startURL = startURL;
-        this.internet = internet;
+    WebCrawlerImpl(Integer maxNumberOfThreads, WebCrawlerSiteBrowser siteBrowser) {
+        logger.trace("Creating WebCrawlerSiteBrowserJsonFileImpl Crawler Object");
 
-        threadPool = new ForkJoinPool(5);
+        threadPool = new ForkJoinPool(maxNumberOfThreads);
 
         visitedSites = Collections.synchronizedList(new ArrayList<String>());
         skippedSites = Collections.synchronizedList(new ArrayList<String>());
         errorSites = Collections.synchronizedList(new ArrayList<String>());
 
-        logger.trace("Created the Web Crawler Object");
+        this.siteBrowser = siteBrowser;
+
+        logger.trace("Created the WebCrawlerSiteBrowserJsonFileImpl Crawler Object");
     }
 
     @Override
-    public void start() throws InterruptedException {
+    public void start(String startURL) throws InterruptedException {
         logger.trace("Start method call started.");
-        threadPool.invoke(new WebCrawlerAction(this, this.startURL));
+        threadPool.invoke(new WebCrawlerAction(startURL, this, siteBrowser));
+        threadPool.shutdown();
+        threadPool.awaitTermination(5, TimeUnit.MINUTES);
+        logger.trace("Start method call complete.");
+    }
+
+    @Override
+    public void start(String startURL, int maxDepth) throws InterruptedException {
+        logger.trace("Start method call started.");
+        threadPool.invoke(new WebCrawlerAction(startURL, this, siteBrowser, maxDepth));
+        threadPool.shutdown();
+        threadPool.awaitTermination(5, TimeUnit.MINUTES);
         logger.trace("Start method call complete.");
     }
 
@@ -84,12 +94,6 @@ class WebCrawlerImpl implements WebCrawler {
                 getReportSection("Error", errorSites);
     }
 
-    @Override
-    public Page visitPage(String siteAddress) {
-        logger.trace("Visiting Page: " + siteAddress);
-        return internet.getPage(siteAddress);
-    }
-
     private String getReportSection(String sectionName, List<String> results) {
         StringBuilder sb = new StringBuilder();
 
@@ -100,7 +104,11 @@ class WebCrawlerImpl implements WebCrawler {
         for (String link : results) {
             sb.append("\"").append(link).append("\",");
         }
-        sb.deleteCharAt(sb.length() - 1);
+
+        if (!results.isEmpty()) {
+            sb.deleteCharAt(sb.length() - 1);
+        }
+
         sb.append("]");
         sb.append(System.getProperty("line.separator"));
 
