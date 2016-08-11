@@ -8,10 +8,10 @@ import org.apache.commons.cli.Options;
 class ProgramOptions {
     private final static String cliCommandName = "SL-WebCrawler";
 
-    public static String TEST_MODE_ARG_NAME = "test";
-    public static String WEB_MODE_ARG_NAME = "crawl";
-    public static String DEMO_MODE_ARG_NAME = "demo";
-    public static String MAX_DEPTH_ARG_NAME = "maxdepth";
+    static String TEST_MODE_ARG_NAME = "test";
+    static String WEB_MODE_ARG_NAME = "crawl";
+    static String DEMO_MODE_ARG_NAME = "demo";
+    static String MAX_DEPTH_ARG_NAME = "maxdepth";
 
     static Options getProgramOptions() {
         Options options = new Options();

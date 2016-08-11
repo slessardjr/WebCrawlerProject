@@ -18,6 +18,11 @@ public class SiteBrowserImpl implements SiteBrowser {
         return getLinks(siteDocumentLinks);
     }
 
+    @Override
+    public String getFirstPageAddress() {
+        return null;
+    }
+
     private Set<String> getLinks(Elements elements) {
         Set<String> siteLinks = new HashSet<>();
 

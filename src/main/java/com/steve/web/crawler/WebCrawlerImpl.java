@@ -114,4 +114,17 @@ class WebCrawlerImpl implements WebCrawler {
 
         return sb.toString();
     }
+
+    public List<String> getVisitedSites() {
+        return visitedSites;
+    }
+
+    public List<String> getSkippedSites() {
+        return skippedSites;
+    }
+
+    public List<String> getErrorSites() {
+        return errorSites;
+    }
+
 }

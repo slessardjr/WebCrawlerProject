@@ -6,6 +6,7 @@ import com.steve.web.crawler.model.Page;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,8 @@ public class SiteBrowserJsonFileImpl implements SiteBrowser {
         }
     }
 
-    SiteBrowserJsonFileImpl(File jsonFile) throws FileNotFoundException {
-        try {
-            jsonDocument = JsonPath.parse(jsonFile);
-        } catch (Exception e) {
-            throw new FileNotFoundException(jsonFile.getName());
-        }
+    SiteBrowserJsonFileImpl(InputStream jsonFile) throws Exception {
+        jsonDocument = JsonPath.parse(jsonFile);
     }
 
     private static Set<String> getAllSiteLinks(String siteAddress, DocumentContext documentContext) throws Exception {
@@ -56,11 +53,14 @@ public class SiteBrowserJsonFileImpl implements SiteBrowser {
     }
 
     @Override
+    public String getFirstPageAddress() {
+        return getFirstPageAddress(this.jsonDocument);
+    }
+
+    @Override
     public Set<String> getAllSiteLinks(String siteAddress) throws Exception {
         return getAllSiteLinks(siteAddress, this.jsonDocument);
     }
 
-    public String getFirstPageAddress() {
-        return getFirstPageAddress(this.jsonDocument);
-    }
+
 }

@@ -43,6 +43,10 @@ class CrawlerAction extends RecursiveAction {
 
     @Override
     protected void compute() {
+        doCrawl();
+    }
+
+    private void doCrawl() {
         if (limitedSearch && currentDepth > maxDepth) {
             return;
         }
